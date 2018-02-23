@@ -1,0 +1,185 @@
+{
+  "name": "RestToEMSApp",
+  "type": "flogo:app",
+  "version": "0.0.1",
+  "description": "",
+  "triggers": [
+    {
+      "name": "Receive HTTP Message",
+      "ref": "github.com/TIBCOSoftware/flogo-contrib/trigger/rest",
+      "description": "Simple REST Trigger",
+      "settings": {
+        "port": "8080"
+      },
+      "id": "receive_http_message",
+      "handlers": [
+        {
+          "actionMappings": {
+            "input": [
+              {
+                "mapTo": "in",
+                "type": 1,
+                "value": "content"
+              }
+            ],
+            "output": [
+              {
+                "mapTo": "data",
+                "type": 1,
+                "value": "out"
+              }
+            ]
+          },
+          "settings": {
+            "method": "POST",
+            "path": "/trigger",
+            "autoIdReply": "true",
+            "useReplyHandler": "true"
+          },
+          "actionId": "main_flow"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "data": {
+        "flow": {
+          "name": "MainFlow",
+          "type": 1,
+          "attributes": [],
+          "rootTask": {
+            "id": "root",
+            "type": 1,
+            "tasks": [
+              {
+                "id": "ems_3",
+                "name": "Publish EMS message",
+                "description": "Publish EMS message",
+                "type": 1,
+                "activityType": "github-com-mmussett-flogo-components-activity-ems",
+                "activityRef": "github.com/mmussett/flogo-components/activity/ems",
+                "attributes": [
+                  {
+                    "name": "content",
+                    "value": "",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "name": "destination",
+                    "value": "queue.sample",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "name": "serverUrl",
+                    "value": "tcp://10.0.0.18:7222",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "name": "user",
+                    "value": "admin",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "name": "password",
+                    "value": "admin",
+                    "required": false,
+                    "type": "string"
+                  },
+                  {
+                    "name": "exchangeMode",
+                    "value": "send-receive",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "name": "deliveryDelay",
+                    "value": null,
+                    "required": true,
+                    "type": "integer"
+                  },
+                  {
+                    "name": "deliveryMode",
+                    "value": "persistent",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "name": "expiration",
+                    "value": 0,
+                    "required": true,
+                    "type": "integer"
+                  },
+                  {
+                    "name": "tracing",
+                    "value": null,
+                    "required": false,
+                    "type": "any"
+                  }
+                ],
+                "inputMappings": [
+                  {
+                    "type": 1,
+                    "value": "$flow.in",
+                    "mapTo": "content"
+                  }
+                ]
+              },
+              {
+                "id": "actreply_4",
+                "name": "Reply To Trigger (2)",
+                "description": "Simple Reply Activity",
+                "type": 1,
+                "activityType": "github-com-tibco-software-flogo-contrib-activity-actreply",
+                "activityRef": "github.com/TIBCOSoftware/flogo-contrib/activity/actreply",
+                "attributes": [
+                  {
+                    "name": "mappings",
+                    "value": [
+                      {
+                        "mapTo": "out",
+                        "type": 1,
+                        "value": "$activity[ems_3].response"
+                      }
+                    ],
+                    "required": false,
+                    "type": "array"
+                  }
+                ]
+              }
+            ],
+            "links": [
+              {
+                "id": 1,
+                "from": "ems_3",
+                "to": "actreply_4",
+                "type": 0
+              }
+            ],
+            "attributes": []
+          }
+        }
+      },
+      "id": "main_flow",
+      "metadata": {
+        "input": [
+          {
+            "name": "in",
+            "type": "string"
+          }
+        ],
+        "output": [
+          {
+            "name": "out",
+            "type": "string"
+          }
+        ]
+      },
+      "ref": "github.com/TIBCOSoftware/flogo-contrib/action/flow"
+    }
+  ]
+}

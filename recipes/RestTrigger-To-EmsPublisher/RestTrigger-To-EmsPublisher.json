@@ -1,0 +1,51 @@
+{
+    "mashling_schema": "0.2",
+    "gateway": {
+        "name": "3recipe",
+        "version": "1.0.0",
+        "display_name": "HTTP Trigger to EMS Publisher",
+        "display_image": "displayImage.svg",
+        "description": "This is a simple recipe that illustrates receiving messages on a HTTP trigger and publishing it via EMS ",
+        "configurations": [{
+            "name": "EmsConfig",
+            "type": "github.com/mmussett/flogo-components/activity/ems",
+            "description": "Configuration for kafka cluster",
+            "settings": {
+                "serverUrl": "tcp://10.0.0.18:7222",
+                "destination": "queue.sample",
+                "user": "admin",
+                "password": "admin",
+                "exchangeMode": "send-receive",
+                "deliveryMode": "persistent"
+            }
+        }],
+        "triggers": [{
+            "name": "rest_trigger4",
+            "description": "The trigger on 'trigger' endpoint",
+            "type": "github.com/TIBCOSoftware/flogo-contrib/trigger/rest",
+            "settings": {
+                "port": "8080",
+                "method": "PUT",
+                "path": "/trigger",
+                "autoIdReply": "true",
+                "useReplyHandler": "true"
+            }
+        }],
+        "event_handlers": [{
+            "name": "get_pet_handler4",
+            "description": "Handle the user access",
+            "reference": "github.com/mmussett/mashling/lib/flow/RestTriggerToEmsActivity.json",
+            "params": {
+                "uri": "petstore.swagger.io/v2/pet/3"
+            }
+        }],
+        "event_links": [{
+            "triggers": [
+                "rest_trigger4"
+            ],
+            "dispatches": [{
+                "handler": "get_pet_handler4"
+            }]
+        }]
+    }
+}
